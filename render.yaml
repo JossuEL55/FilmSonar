@@ -22,7 +22,7 @@ services:
 
 databases:
   - name: film-sonar-db
-    databaseName: film_sonar_production
-    user: film_sonar_user
+    databaseName: film_sonar_db
+    user: film_sonar_db_user
     plan: starter
     region: oregon 
