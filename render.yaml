@@ -19,7 +19,6 @@ services:
       - key: SOLID_QUEUE_IN_PUMA
         value: true
     buildCommand: echo "Build handled by Docker"
-    startCommand: echo "Start handled by Docker"
 
 databases:
   - name: film-sonar-db
