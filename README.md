@@ -17,7 +17,7 @@
 
 ---
 
-## ⚙Prerrequisitos
+## Prerrequisitos
 
 Asegúrate de tener instalados:
 
