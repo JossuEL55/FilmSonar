@@ -39,7 +39,7 @@ Si necesitas configurar variables de entorno:
 ```bash
 cp .env.example .env
 
-## 2. Configuración Inicial
+### 2. Configuración Inicial
 Si necesitas configurar variables de entorno:
 
 ```bash
