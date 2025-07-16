@@ -34,81 +34,85 @@ Asegúrate de tener instalados:
 ```bash
 git clone https://github.com/daniel-vizcarra/film_sonar.git
 cd film_sonar
-**2. Configuración Inicial**  
-Si necesitas configurar variables de entorno:
-```bash
-cp .env.example .env
+```
 
 ### 2. Configuración Inicial
+
 Si necesitas configurar variables de entorno:
 
 ```bash
 cp .env.example .env
+```
 
-## 3. Construir la Imagen Docker
-# Construir las imágenes (necesario la primera vez o si se modifican Dockerfile/Gemfile)
+### 3. Construir la Imagen Docker
+
+Construir las imágenes (necesario la primera vez o si se modifican Dockerfile/Gemfile):
+
+```bash
 docker-compose build
+```
 
-## 4. Iniciar los Servicios
-# Iniciar todos los servicios (aplicación, base de datos, compilador Sass)
+### 4. Iniciar los Servicios
+
+Iniciar todos los servicios (aplicación, base de datos, compilador Sass):
+
+```bash
 docker-compose up
+```
 
-## 5. Preparar la base de datos
+### 5. Preparar la Base de Datos
+
 En una nueva terminal, desde la carpeta del proyecto:
-# Crear bases de datos
+
+```bash
 docker-compose exec app bundle exec rails db:create
-
-# Aplicar migraciones
 docker-compose exec app bundle exec rails db:migrate
-
-# Cargar datos iniciales
 docker-compose exec app bundle exec rails db:seed
+```
 
-## 6. Acceder a la Aplicación
+### 6. Acceder a la Aplicación
 
-Abre tu navegador y visita: http://localhost:3000
+Abre tu navegador y visita: [http://localhost:3000](http://localhost:3000)
 
-##Comandos útiles
-Gestión de Servicios
-# Iniciar servicios en primer plano (con logs)
-docker-compose up
+---
 
-# Iniciar servicios en segundo plano
-docker-compose up -d
+## Comandos Útiles
 
-# Detener servicios
-docker-compose down
+### Gestión de Servicios
 
-# Detener servicios y eliminar volúmenes (¡cuidado: borra la BD!)
-docker-compose down -v
-
-# Ver logs
+```bash
+docker-compose up              # Iniciar en primer plano
+docker-compose up -d          # Iniciar en segundo plano
+docker-compose down           # Detener servicios
+docker-compose down -v        # Detener y eliminar volúmenes (¡cuidado: borra la BD!)
 docker-compose logs -f
 docker-compose logs -f app    # Solo logs de la aplicación
 docker-compose logs -f db     # Solo logs de la base de datos
+```
 
-Comandos Rails
-# Consola Rails
-docker-compose exec app bundle exec rails console
+### Comandos Rails
 
-# Ejecutar tests
-docker-compose exec app bundle exec rails test
+```bash
+docker-compose exec app bundle exec rails console       # Consola Rails
+docker-compose exec app bundle exec rails test          # Ejecutar tests
+docker-compose exec app bundle exec rails routes        # Ver rutas disponibles
+docker-compose exec app bundle exec rails db:migrate    # Migraciones pendientes
+docker-compose exec app bundle exec rails db:rollback   # Revertir última migración
+```
 
-# Ver rutas disponibles
-docker-compose exec app bundle exec rails routes
+### Mantenimiento
 
-# Ejecutar migraciones pendientes
-docker-compose exec app bundle exec rails db:migrate
+```bash
+docker-compose build app      # Reconstruir imagen específica
+docker system prune           # Limpiar imágenes no utilizadas
+docker-compose ps             # Ver estado de los contenedores
+```
 
-# Revertir última migración
-docker-compose exec app bundle exec rails db:rollback
+---
 
-Mantenimiento
-# Reconstruir una imagen específica
-docker-compose build app
 
-# Limpiar imágenes no utilizadas
-docker system prune
+---
 
-# Ver estado de los contenedores
-docker-compose ps
+¡Listo!Ya puedes empezar a usar **FilmSonar** y disfrutar de una experiencia cinéfila totalmente personalizada.
+
+
