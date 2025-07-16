@@ -1,0 +1,221 @@
+@startuml Film Sonar - Patrones de Diseño
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+
+package "🎯 PATRÓN STRATEGY" {
+  note top of RecommendationStrategy : "Define una familia de algoritmos\nencapsulándolos y haciéndolos\nintercambiables"
+  
+  interface RecommendationStrategy {
+    <<interface>>
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    +strategy_name()
+  }
+
+  class GenreStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+
+  class DirectorStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+
+  class RecommendationService {
+    -user: User
+    -strategies: Array
+    --
+    +generate_recommendations(limit: integer)
+    +get_recommendation_reasoning()
+  }
+
+  RecommendationStrategy <|.. GenreStrategy : implements
+  RecommendationStrategy <|.. DirectorStrategy : implements
+  RecommendationService --> RecommendationStrategy : uses strategies
+}
+
+package "🗄️ PATRÓN REPOSITORY" {
+  note top of MovieRepository : "Abstrae la lógica de acceso\na datos, centralizando\nlas consultas"
+  
+  class MovieRepository {
+    +find_all()
+    +find_by_filters(filters)
+    +find_similar(movie, limit)
+    +find_top_movies(limit)
+    +find_by_id(id)
+    +find_by_ids(ids)
+    +search_by_title(title, limit)
+    +find_by_director(director_id, limit)
+    +find_by_genre(genre_id, limit)
+  }
+
+  class MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+    +show()
+  }
+
+  class Api::V1::MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+    +show()
+    +similar()
+    +top()
+  }
+
+  MoviesController --> MovieRepository : depends on
+  Api::V1::MoviesController --> MovieRepository : depends on
+}
+
+package "🏗️ PATRÓN TEMPLATE METHOD" {
+  note top of ApplicationController : "Define el esqueleto de un\nalgoritmo en una clase base,\npermitiendo que las subclases\nsobrescriban pasos específicos"
+  
+  class ApplicationController {
+    <<abstract>>
+    +authorize_manager!()
+  }
+
+  class Api::V1::BaseController {
+    +authenticate_user!()
+    +not_found(exception)
+    +unprocessable_entity(exception)
+    +bad_request(exception)
+    +render_success(data, message)
+    +render_error(message, status)
+  }
+
+  class Api::V1::MoviesController {
+    +index()
+    +show()
+    +similar()
+    +top()
+  }
+
+  class Api::V1::RecommendationsController {
+    +index()
+    +explore()
+  }
+
+  class Api::V1::UsersController {
+    +profile()
+    +favorites()
+    +watched()
+    +watchlist()
+  }
+
+  ApplicationController <|-- Api::V1::BaseController : extends
+  Api::V1::BaseController <|-- Api::V1::MoviesController : extends
+  Api::V1::BaseController <|-- Api::V1::RecommendationsController : extends
+  Api::V1::BaseController <|-- Api::V1::UsersController : extends
+}
+
+package "🔗 PATRÓN OBSERVER" {
+  note top of ExternalRating : "Define una dependencia uno-a-muchos\nentre objetos, de modo que cuando\nun objeto cambia, todos sus\ndependientes son notificados"
+  
+  class ExternalRating {
+    +movie_id: bigint
+    +source_name: string
+    +score: string
+    +vote_count: integer
+    --
+    +normalized_score()
+    +effective_vote_count()
+    +update_movie_weighted_score()
+  }
+
+  class Movie {
+    +title: string
+    +weighted_score: decimal
+    --
+    +calculate_weighted_score()
+    +update_weighted_score!()
+  }
+
+  ExternalRating --> Movie : notifies on save/destroy
+}
+
+package "🎭 PATRÓN FACADE" {
+  note top of RecommendationService : "Proporciona una interfaz\nunificada a un conjunto de\ninterfaces en un subsistema"
+  
+  class RecommendationService {
+    -user: User
+    -strategies: Array
+    --
+    +generate_recommendations(limit: integer)
+    +get_recommendation_reasoning()
+  }
+
+  class User {
+    +favorite_movies()
+    +watched_movies()
+    +watchlist_movies()
+  }
+
+  RecommendationService --> User : simplifies access to
+}
+
+package "📦 PATRÓN VALUE OBJECT" {
+  note top of ExternalRating : "Objetos inmutables que\nrepresentan conceptos del\ndominio de negocio"
+  
+  class ExternalRating {
+    +source_name: string
+    +score: string
+    +vote_count: integer
+    --
+    +normalized_score()
+    +effective_vote_count()
+  }
+
+  note right of ExternalRating : "Encapsula la lógica de\nnormalización de puntuaciones\nde diferentes fuentes"
+}
+
+package "🔒 PATRÓN SINGLETON (Devise)" {
+  note top of User : "Devise implementa el patrón\nSingleton para la gestión\nde autenticación"
+  
+  class User {
+    +email: string
+    +encrypted_password: string
+    +role: string
+    --
+    +favorite_movies()
+    +watched_movies()
+    +watchlist_movies()
+  }
+
+  note right of User : "Devise maneja la autenticación\nglobalmente en la aplicación"
+}
+
+' Relaciones entre patrones
+RecommendationService --> User : uses Facade pattern
+MovieRepository --> Movie : uses Repository pattern
+ExternalRating --> Movie : uses Observer pattern
+
+' Notas explicativas
+note as N1
+  <b>Principios SOLID aplicados:</b>
+  • <b>S</b>ingle Responsibility: Cada clase tiene una responsabilidad
+  • <b>O</b>pen/Closed: Abierto para extensión, cerrado para modificación
+  • <b>L</b>iskov Substitution: Las estrategias son intercambiables
+  • <b>I</b>nterface Segregation: Interfaces específicas por patrón
+  • <b>D</b>ependency Inversion: Depende de abstracciones
+end note
+
+note as N2
+  <b>Beneficios de los patrones:</b>
+  • <b>Strategy:</b> Fácil agregar nuevas estrategias de recomendación
+  • <b>Repository:</b> Centraliza acceso a datos, facilita testing
+  • <b>Template Method:</b> Reutilización de código en controladores
+  • <b>Observer:</b> Actualización automática de puntuaciones
+  • <b>Facade:</b> Simplifica la interfaz del sistema de recomendaciones
+end note
+
+@enduml 

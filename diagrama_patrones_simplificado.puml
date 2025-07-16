@@ -1,0 +1,92 @@
+@startuml Film Sonar - Patrones de Diseño Simplificado
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+package "🎯 STRATEGY PATTERN" {
+  interface RecommendationStrategy {
+    +recommend()
+    +calculate_score()
+  }
+
+  class GenreStrategy {
+    +recommend()
+    +calculate_score()
+  }
+
+  class DirectorStrategy {
+    +recommend()
+    +calculate_score()
+  }
+
+  class RecommendationService {
+    -strategies: Array
+    +generate_recommendations()
+  }
+
+  RecommendationStrategy <|.. GenreStrategy
+  RecommendationStrategy <|.. DirectorStrategy
+  RecommendationService --> RecommendationStrategy
+}
+
+package "🗄️ REPOSITORY PATTERN" {
+  class MovieRepository {
+    +find_by_filters()
+    +find_similar()
+    +find_top_movies()
+  }
+
+  class MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+  }
+
+  MoviesController --> MovieRepository
+}
+
+package "🏗️ TEMPLATE METHOD" {
+  class ApplicationController {
+    +authorize_manager!()
+  }
+
+  class Api::V1::BaseController {
+    +authenticate_user!()
+    +render_success()
+    +render_error()
+  }
+
+  class Api::V1::MoviesController {
+    +index()
+    +show()
+  }
+
+  ApplicationController <|-- Api::V1::BaseController
+  Api::V1::BaseController <|-- Api::V1::MoviesController
+}
+
+package "🔗 OBSERVER PATTERN" {
+  class ExternalRating {
+    +update_movie_weighted_score()
+  }
+
+  class Movie {
+    +update_weighted_score!()
+  }
+
+  ExternalRating --> Movie : "notifica cambios"
+}
+
+note as N1
+  <b>Beneficios de los Patrones:</b>
+  • <b>Strategy:</b> Fácil agregar nuevas estrategias
+  • <b>Repository:</b> Centraliza acceso a datos
+  • <b>Template Method:</b> Reutilización de código
+  • <b>Observer:</b> Actualización automática
+end note
+
+@enduml 

@@ -1,0 +1,285 @@
+@startuml Diagrama de Clases - Film Sonar Mejorado
+
+!define RECTANGLE class
+
+package "Domain Layer" {
+  class Movie {
+    +id: Integer
+    +title: String
+    +release_year: Integer
+    +weighted_score: Decimal
+    +director_id: Integer
+    +calculate_weighted_score(): Decimal
+    +update_weighted_score!(): void
+  }
+
+  class User {
+    +id: Integer
+    +email: String
+    +role: String
+    +get_preferences(): UserPreferences
+  }
+
+  class Director {
+    +id: Integer
+    +name: String
+  }
+
+  class Genre {
+    +id: Integer
+    +name: String
+  }
+
+  class ExternalRating {
+    +id: Integer
+    +source_name: String
+    +score: String
+    +vote_count: Integer
+    +movie_id: Integer
+    +normalized_score(): Decimal
+    +effective_vote_count(): Integer
+  }
+
+  class Favorite {
+    +id: Integer
+    +user_id: Integer
+    +movie_id: Integer
+    +created_at: DateTime
+  }
+
+  class WatchedEntry {
+    +id: Integer
+    +user_id: Integer
+    +movie_id: Integer
+    +watched_on: Date
+  }
+
+  class WatchlistEntry {
+    +id: Integer
+    +user_id: Integer
+    +movie_id: Integer
+  }
+}
+
+package "Application Layer" {
+  interface IRecommendationStrategy {
+    +recommend(user_preferences: UserPreferences, candidate_movies: List<Movie>): List<Recommendation>
+    +calculate_score(movie: Movie, preferences: UserPreferences): Decimal
+    +strategy_name(): String
+  }
+
+  class GenreRecommendationStrategy {
+    +recommend(user_preferences: UserPreferences, candidate_movies: List<Movie>): List<Recommendation>
+    +calculate_score(movie: Movie, preferences: UserPreferences): Decimal
+  }
+
+  class DirectorRecommendationStrategy {
+    +recommend(user_preferences: UserPreferences, candidate_movies: List<Movie>): List<Recommendation>
+    +calculate_score(movie: Movie, preferences: UserPreferences): Decimal
+  }
+
+  class CollaborativeRecommendationStrategy {
+    +recommend(user_preferences: UserPreferences, candidate_movies: List<Movie>): List<Recommendation>
+    +calculate_score(movie: Movie, preferences: UserPreferences): Decimal
+  }
+
+  class RecommendationService {
+    -strategies: List<IRecommendationStrategy>
+    -user: User
+    +generate_recommendations(limit: Integer): List<Movie>
+    +get_recommendation_reasoning(): String
+    -extract_user_preferences(): UserPreferences
+    -find_candidate_movies(preferences: UserPreferences): List<Movie>
+    -group_and_score_recommendations(recommendations: List<Recommendation>): List<GroupedRecommendation>
+  }
+
+  interface IMovieRepository {
+    +find_all(): List<Movie>
+    +find_by_filters(filters: MovieFilters): List<Movie>
+    +find_by_id(id: Integer): Movie
+    +find_similar(movie: Movie, limit: Integer): List<Movie>
+    +find_top_movies(limit: Integer): List<Movie>
+  }
+
+  class MovieRepository {
+    +find_all(): List<Movie>
+    +find_by_filters(filters: MovieFilters): List<Movie>
+    +find_by_id(id: Integer): Movie
+    +find_similar(movie: Movie, limit: Integer): List<Movie>
+    +find_top_movies(limit: Integer): List<Movie>
+  }
+
+  interface IUserActionService {
+    +add_to_favorites(user: User, movie: Movie): Result
+    +remove_from_favorites(user: User, movie: Movie): Result
+    +mark_as_watched(user: User, movie: Movie): Result
+    +add_to_watchlist(user: User, movie: Movie): Result
+  }
+
+  class UserActionService {
+    -event_publisher: IEventPublisher
+    +add_to_favorites(user: User, movie: Movie): Result
+    +remove_from_favorites(user: User, movie: Movie): Result
+    +mark_as_watched(user: User, movie: Movie): Result
+    +add_to_watchlist(user: User, movie: Movie): Result
+  }
+
+  interface IEventPublisher {
+    +publish(event: DomainEvent): void
+  }
+
+  class EventPublisher {
+    +publish(event: DomainEvent): void
+  }
+
+  interface IMovieFilterStrategy {
+    +apply(query: ActiveRecord::Relation, filters: MovieFilters): ActiveRecord::Relation
+    +supports?(filter_type: String): Boolean
+  }
+
+  class GenreFilterStrategy {
+    +apply(query: ActiveRecord::Relation, filters: MovieFilters): ActiveRecord::Relation
+    +supports?(filter_type: String): Boolean
+  }
+
+  class DirectorFilterStrategy {
+    +apply(query: ActiveRecord::Relation, filters: MovieFilters): ActiveRecord::Relation
+    +supports?(filter_type: String): Boolean
+  }
+
+  class ScoreFilterStrategy {
+    +apply(query: ActiveRecord::Relation, filters: MovieFilters): ActiveRecord::Relation
+    +supports?(filter_type: String): Boolean
+  }
+
+  class MovieFilterService {
+    -strategies: List<IMovieFilterStrategy>
+    +apply_filters(query: ActiveRecord::Relation, filters: MovieFilters): ActiveRecord::Relation
+  }
+}
+
+package "Infrastructure Layer" {
+  class MovieController {
+    -movie_service: IMovieService
+    -recommendation_service: RecommendationService
+    +index(): void
+    +show(): void
+  }
+
+  class MovieService {
+    -repository: IMovieRepository
+    -filter_service: MovieFilterService
+    +get_movies_with_filters(filters: MovieFilters): List<Movie>
+    +get_movie_by_id(id: Integer): Movie
+    +get_similar_movies(movie: Movie): List<Movie>
+  }
+
+  class UserActionController {
+    -user_action_service: IUserActionService
+    +favorite(): void
+    +unfavorite(): void
+    +watched(): void
+    +add_to_watchlist(): void
+  }
+}
+
+package "Value Objects" {
+  class UserPreferences {
+    +preferred_genre_ids: List<Integer>
+    +preferred_director_ids: List<Integer>
+    +average_rating: Decimal
+    +total_watched: Integer
+  }
+
+  class MovieFilters {
+    +genre_ids: List<Integer>
+    +director_ids: List<Integer>
+    +year_from: Integer
+    +year_to: Integer
+    +min_score: Decimal
+    +sort_by: String
+  }
+
+  class Recommendation {
+    +movie: Movie
+    +score: Decimal
+    +reason: String
+    +strategy: String
+  }
+
+  class GroupedRecommendation {
+    +movie: Movie
+    +total_score: Decimal
+    +reasons: List<String>
+  }
+
+  class Result {
+    +success: Boolean
+    +message: String
+    +data: Object
+  }
+}
+
+package "Domain Events" {
+  abstract class DomainEvent {
+    +occurred_on: DateTime
+    +aggregate_id: Integer
+  }
+
+  class MovieFavoritedEvent {
+    +user_id: Integer
+    +movie_id: Integer
+  }
+
+  class MovieWatchedEvent {
+    +user_id: Integer
+    +movie_id: Integer
+    +watched_on: Date
+  }
+
+  class MovieAddedToWatchlistEvent {
+    +user_id: Integer
+    +movie_id: Integer
+  }
+}
+
+' Relationships
+Movie ||--o{ ExternalRating : has
+Movie ||--o{ Favorite : has
+Movie ||--o{ WatchedEntry : has
+Movie ||--o{ WatchlistEntry : has
+Movie }o--|| Director : belongs_to
+Movie }o--o{ Genre : has_and_belongs_to_many
+User ||--o{ Favorite : has
+User ||--o{ WatchedEntry : has
+User ||--o{ WatchlistEntry : has
+
+' Application Layer Relationships
+IRecommendationStrategy <|.. GenreRecommendationStrategy
+IRecommendationStrategy <|.. DirectorRecommendationStrategy
+IRecommendationStrategy <|.. CollaborativeRecommendationStrategy
+RecommendationService o-- IRecommendationStrategy : uses
+
+IMovieRepository <|.. MovieRepository
+MovieService o-- IMovieRepository : depends_on
+
+IUserActionService <|.. UserActionService
+UserActionService o-- IEventPublisher : publishes_events
+
+IMovieFilterStrategy <|.. GenreFilterStrategy
+IMovieFilterStrategy <|.. DirectorFilterStrategy
+IMovieFilterStrategy <|.. ScoreFilterStrategy
+MovieFilterService o-- IMovieFilterStrategy : uses
+
+' Infrastructure Layer Relationships
+MovieController o-- MovieService : uses
+MovieController o-- RecommendationService : uses
+UserActionController o-- IUserActionService : uses
+
+' Domain Events
+DomainEvent <|-- MovieFavoritedEvent
+DomainEvent <|-- MovieWatchedEvent
+DomainEvent <|-- MovieAddedToWatchlistEvent
+UserActionService ..> DomainEvent : creates
+
+@enduml 

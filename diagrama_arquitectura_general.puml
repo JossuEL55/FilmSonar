@@ -1,0 +1,63 @@
+@startuml Film Sonar - Arquitectura General
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 20
+skinparam componentStyle rectangle
+
+package "🌐 Capa de Presentación" {
+  [Controllers Web] as WebControllers
+  [Controllers API] as APIControllers
+  [Views] as Views
+  [JavaScript] as JS
+}
+
+package "⚙️ Capa de Servicios" {
+  [RecommendationService] as RecService
+  [MovieRepository] as MovieRepo
+  [Authentication] as Auth
+}
+
+package "🎯 Capa de Estrategias" {
+  [GenreStrategy] as GenreStrat
+  [DirectorStrategy] as DirectorStrat
+}
+
+package "🗄️ Capa de Datos" {
+  [Models] as Models
+  [Database] as DB
+}
+
+' Relaciones entre capas
+WebControllers --> RecService
+WebControllers --> MovieRepo
+APIControllers --> RecService
+APIControllers --> MovieRepo
+APIControllers --> Auth
+
+RecService --> GenreStrat
+RecService --> DirectorStrat
+RecService --> Models
+
+MovieRepo --> Models
+Models --> DB
+
+Views --> WebControllers
+JS --> APIControllers
+
+note as N1
+  <b>Arquitectura en Capas:</b>
+  • Separación clara de responsabilidades
+  • Fácil mantenimiento y testing
+  • Escalabilidad del sistema
+end note
+
+note as N2
+  <b>Flujo de Datos:</b>
+  1. Usuario interactúa con Views/JS
+  2. Controllers procesan la solicitud
+  3. Services ejecutan lógica de negocio
+  4. Models acceden a la base de datos
+end note
+
+@enduml 

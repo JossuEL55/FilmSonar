@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec foreman start -f Procfile.dev
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      DATABASE_HOST: db
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DART_SASS_POLL: "true"
+      # El nombre de la base de datos (film_sonar_development) se toma de database.yml
+  
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      # POSTGRES_DB: film_sonar_dev_init # Opcional, Rails creará las BDs de dev/test
+    ports:
+      - "5432:5432" # Opcional: Mapea el puerto si necesitas acceso externo a la BD
+
+volumes:
+  postgres_data:
+  bundle_cache:

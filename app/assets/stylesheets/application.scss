@@ -1,0 +1,22 @@
+/* app/assets/stylesheets/application.scss */
+
+// Base styles (Descomenta estas líneas)
+@import "base/variables";
+@import "base/typography";
+
+// Layout styles (Descomenta estas líneas)
+@import "layout/layout";
+@import "layout/header";
+@import "layout/navigation";
+@import "layout/footer";
+@import "layout/sidebar";
+// Component styles
+@import "components/buttons";
+@import "components/movie_card";
+@import "components/forms";
+@import "components/filters";
+@import "components/top_10_section";
+
+//pages
+@import "pages/movie_show_page";
+@import "pages/home";

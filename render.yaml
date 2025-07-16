@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: film-sonar
+    env: docker
+    plan: starter
+    region: oregon
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_LEVEL
+        value: info
+      - key: RAILS_MAX_THREADS
+        value: 5
+      - key: WEB_CONCURRENCY
+        value: 2
+      - key: SOLID_QUEUE_IN_PUMA
+        value: true
+    buildCommand: echo "Build handled by Docker"
+    startCommand: echo "Start handled by Docker"
+
+databases:
+  - name: film-sonar-db
+    databaseName: film_sonar_production
+    user: film_sonar_user
+    plan: starter
+    region: oregon 

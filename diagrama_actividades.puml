@@ -1,0 +1,106 @@
+@startuml Diagrama de Actividades - Film Sonar
+
+start
+
+:Usuario accede al sistema;
+
+if (¿Usuario autenticado?) then (Sí)
+  :Cargar página principal;
+  :Mostrar películas populares;
+  :Mostrar recomendaciones personalizadas;
+  
+  fork
+    :Generar recomendaciones;
+    :Extraer preferencias del usuario;
+    :Buscar películas candidatas;
+    
+    fork
+      :Aplicar estrategia por género;
+      :Calcular puntuación por género;
+    fork again
+      :Aplicar estrategia por director;
+      :Calcular puntuación por director;
+    fork again
+      :Aplicar estrategia colaborativa;
+      :Calcular puntuación colaborativa;
+    end fork
+    
+    :Combinar resultados;
+    :Ordenar por puntuación total;
+    :Devolver top N recomendaciones;
+  fork again
+    :Mostrar filtros disponibles;
+    :Aplicar filtros seleccionados;
+    :Ordenar resultados;
+    :Paginación;
+  end fork
+  
+  :Usuario interactúa con película;
+  
+  if (¿Qué acción realiza?) then (Marcar como favorita)
+    :Validar que no esté ya marcada;
+    if (¿Ya es favorita?) then (No)
+      :Crear registro de favorito;
+      :Publicar evento MovieFavoritedEvent;
+      :Actualizar recomendaciones;
+      :Mostrar confirmación;
+    else (Sí)
+      :Mostrar mensaje de error;
+    endif
+  elseif (Marcar como vista) then
+    :Validar que no esté ya marcada;
+    if (¿Ya está marcada como vista?) then (No)
+      :Crear registro de vista;
+      :Publicar evento MovieWatchedEvent;
+      :Actualizar estadísticas de usuario;
+      :Actualizar recomendaciones;
+      :Mostrar confirmación;
+    else (Sí)
+      :Mostrar mensaje de error;
+    endif
+  elseif (Agregar a watchlist) then
+    :Validar que no esté ya en watchlist;
+    if (¿Ya está en watchlist?) then (No)
+      :Crear registro de watchlist;
+      :Publicar evento MovieAddedToWatchlistEvent;
+      :Mostrar confirmación;
+    else (Sí)
+      :Mostrar mensaje de error;
+    endif
+  elseif (Ver detalles) then
+    :Cargar información completa de la película;
+    :Buscar películas similares;
+    :Mostrar calificaciones externas;
+    :Mostrar acciones disponibles;
+  endif
+  
+else (No)
+  :Mostrar página de inicio pública;
+  :Mostrar películas populares;
+  :Mostrar opciones de registro/login;
+endif
+
+:Usuario navega por el sistema;
+
+if (¿Accede a sección personalizada?) then (Sí)
+  if (¿Qué sección?) then (Mis Favoritos)
+    :Cargar películas favoritas del usuario;
+    :Mostrar lista paginada;
+  elseif (Películas Vistas) then
+    :Cargar películas vistas del usuario;
+    :Mostrar estadísticas de visualización;
+  elseif (Mi Watchlist) then
+    :Cargar watchlist del usuario;
+    :Mostrar lista paginada;
+  elseif (Dashboard) then
+    :Cargar estadísticas personales;
+    :Mostrar recomendaciones personalizadas;
+    :Mostrar actividad reciente;
+  endif
+else (No)
+  :Continuar navegación general;
+endif
+
+stop
+
+@enduml 

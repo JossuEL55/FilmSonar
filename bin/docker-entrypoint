@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+# Enable jemalloc ... (mantén esta parte)
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
+
+rm -f /rails/tmp/pids/server.pid
+
+#!/bin/bash -e
+# ... (jemalloc, rm pid) ...
+echo "==> FilmSonar Entrypoint: Ejecutando rails db:prepare..."
+bundle exec rails db:prepare
+echo "==> FilmSonar Entrypoint: rails db:prepare finalizado."
+
+echo "==> FilmSonar Entrypoint: Ejecutando rails db:seed (datos base)..."
+bundle exec rails db:seed 
+echo "==> FilmSonar Entrypoint: rails db:seed (base data) finalizado."
+
+echo "==> FilmSonar Entrypoint: Ejecutando import:movies (desde CSV)..."
+bundle exec rails import:movies 
+echo "==> FilmSonar Entrypoint: import:movies finalizado."
+
+echo "==> FilmSonar Entrypoint: Launching main command (${@})..."
+exec "${@}"

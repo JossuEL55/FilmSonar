@@ -1,0 +1,33 @@
+<%# app/views/admin/movies/show.html.erb %>
+<h1><%= @movie.title %></h1>
+
+<% if @movie.poster_url.present? %>
+  <%= image_tag @movie.poster_url, alt: @movie.title, class: "movie-poster-large" %>
+  <br>
+<% end %>
+
+<p><strong>Descripción:</strong> <%= @movie.description %></p>
+<p><strong>Año:</strong> <%= @movie.release_year %></p>
+<p><strong>Director:</strong> <%= @movie.director&.name %></p>
+<p><strong>URL Póster:</strong> <%= @movie.poster_url %></p>
+
+<%# Mostrar Puntaje Ponderado %>
+<% if @movie.weighted_score.present? %>
+  <p><strong>Puntaje Ponderado FilmSonar:</strong> <%= "%.1f" % @movie.weighted_score %>/100</p>
+<% else %>
+  <p><strong>Puntaje Ponderado FilmSonar:</strong> N/A</p>
+<% end %>
+
+<p>
+  <strong>Géneros:</strong>
+  <% if @movie.genres.any? %>
+    <%= @movie.genres.map(&:name).join(', ') %>
+  <% else %>
+    Ninguno asignado.
+  <% end %>
+</p>
+
+<br>
+<%= link_to 'Editar', edit_admin_movie_path(@movie) %> |
+<%= button_to "Eliminar", admin_movie_path(@movie), method: :delete, data: { turbo_confirm: '¿Estás seguro?' }, class: "button-link-inline" %> | <%# AÑADIDO %>
+<%= link_to 'Volver al listado', admin_movies_path %>

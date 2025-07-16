@@ -1,0 +1,42 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { 'localhost' } %>
+  username: <%= ENV.fetch("DATABASE_USER") { 'postgres' } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { 'password' } %>
+
+development:
+  <<: *default
+  database: film_sonar_development
+
+test:
+  <<: *default
+  database: film_sonar_test
+
+production:
+  # Configuración para la base de datos principal de la aplicación
+  primary:
+    adapter: postgresql
+    encoding: unicode
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV['DATABASE_URL'] %> # Render proporciona esta URL
+
+  # Configuración para la base de datos de Action Cable (Solid Cable)
+  cable:
+    adapter: postgresql
+    encoding: unicode
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV['DATABASE_URL'] %> # Le decimos que use la misma BD que la principal
+
+  queue: # Base de datos para Active Job (Solid Queue) <--- AÑADE ESTO
+    adapter: postgresql
+    encoding: unicode
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV['DATABASE_URL'] %> # Usa la misma BD también  
+
+  cache: # Base de datos para el Cache (Solid Cache) <--- ¡AÑADE ESTO!
+    adapter: postgresql
+    encoding: unicode
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV['DATABASE_URL'] %> # Usa la misma BD también  

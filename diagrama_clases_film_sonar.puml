@@ -1,0 +1,250 @@
+@startuml Film Sonar - Diagrama de Clases
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+
+package "Models" {
+  class ApplicationRecord {
+    <<abstract>>
+  }
+
+  class User {
+    +email: string
+    +encrypted_password: string
+    +reset_password_token: string
+    +reset_password_sent_at: datetime
+    +remember_created_at: datetime
+    +role: string
+    +created_at: datetime
+    +updated_at: datetime
+    --
+    +favorite_movies()
+    +watched_movies()
+    +watchlist_movies()
+    +favorite_movie_ids()
+    +watched_movie_ids()
+    +watchlist_movie_ids()
+  }
+
+  class Movie {
+    +title: string
+    +description: text
+    +release_year: integer
+    +poster_url: string
+    +director_id: bigint
+    +weighted_score: decimal
+    +created_at: datetime
+    +updated_at: datetime
+    --
+    +calculate_weighted_score()
+    +update_weighted_score!()
+  }
+
+  class Director {
+    +name: string
+    +bio: text
+    +photo_url: string
+    +created_at: datetime
+    +updated_at: datetime
+  }
+
+  class Genre {
+    +name: string
+    +created_at: datetime
+    +updated_at: datetime
+  }
+
+  class ExternalRating {
+    +movie_id: bigint
+    +source_name: string
+    +score: string
+    +vote_count: integer
+    +created_at: datetime
+    +updated_at: datetime
+    --
+    +normalized_score()
+    +effective_vote_count()
+    +update_movie_weighted_score()
+  }
+
+  class Favorite {
+    +user_id: bigint
+    +movie_id: bigint
+    +created_at: datetime
+    +updated_at: datetime
+  }
+
+  class WatchedEntry {
+    +user_id: bigint
+    +movie_id: bigint
+    +watched_on: date
+    +created_at: datetime
+    +updated_at: datetime
+  }
+
+  class WatchlistEntry {
+    +user_id: bigint
+    +movie_id: bigint
+    +created_at: datetime
+    +updated_at: datetime
+  }
+}
+
+package "Services" {
+  class RecommendationService {
+    -user: User
+    -strategies: Array
+    --
+    +generate_recommendations(limit: integer)
+    +get_recommendation_reasoning()
+    -extract_user_preferences()
+    -find_candidate_movies(preferences)
+    -group_and_score_recommendations(recommendations)
+  }
+
+  class MovieRepository {
+    +find_all()
+    +find_by_filters(filters)
+    +find_similar(movie, limit)
+    +find_top_movies(limit)
+    +find_by_id(id)
+    +find_by_ids(ids)
+    +search_by_title(title, limit)
+    +find_by_director(director_id, limit)
+    +find_by_genre(genre_id, limit)
+  }
+}
+
+package "Strategies" {
+  interface RecommendationStrategy {
+    <<interface>>
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    +strategy_name()
+  }
+
+  class GenreStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+
+  class DirectorStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+}
+
+package "Controllers" {
+  class ApplicationController {
+    <<abstract>>
+    +authorize_manager!()
+  }
+
+  class MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+    +show()
+    -setup_filters()
+    -setup_top_movies()
+    -setup_movies_with_filters()
+    -build_filters_from_params()
+    -apply_sorting()
+    -paginate_results()
+  }
+
+  class Api::V1::BaseController {
+    +authenticate_user!()
+    +not_found(exception)
+    +unprocessable_entity(exception)
+    +bad_request(exception)
+    +render_success(data, message)
+    +render_error(message, status)
+  }
+
+  class Api::V1::MoviesController {
+    +index()
+    +show()
+    +similar()
+    +top()
+    -set_movie_repository()
+    -build_filters_from_params()
+    -apply_sorting()
+    -movie_serializer(movie, detailed)
+  }
+
+  class Api::V1::RecommendationsController {
+    +index()
+    +explore()
+    -movie_serializer(movie)
+  }
+
+  class Api::V1::UsersController {
+    +profile()
+    +favorites()
+    +watched()
+    +watchlist()
+    -user_serializer(user)
+    -movie_serializer(movie)
+  }
+
+  class Api::V1::UserActionsController {
+    +favorite()
+    +unfavorite()
+    +watched()
+    +unwatched()
+    +watchlist()
+    +unwatchlist()
+    -set_movie()
+  }
+}
+
+' Relaciones de herencia
+ApplicationRecord <|-- User
+ApplicationRecord <|-- Movie
+ApplicationRecord <|-- Director
+ApplicationRecord <|-- Genre
+ApplicationRecord <|-- ExternalRating
+ApplicationRecord <|-- Favorite
+ApplicationRecord <|-- WatchedEntry
+ApplicationRecord <|-- WatchlistEntry
+
+ApplicationController <|-- MoviesController
+ApplicationController <|-- Api::V1::BaseController
+Api::V1::BaseController <|-- Api::V1::MoviesController
+Api::V1::BaseController <|-- Api::V1::RecommendationsController
+Api::V1::BaseController <|-- Api::V1::UsersController
+Api::V1::BaseController <|-- Api::V1::UserActionsController
+
+RecommendationStrategy <|.. GenreStrategy
+RecommendationStrategy <|.. DirectorStrategy
+
+' Relaciones de asociación
+User ||--o{ Favorite : has_many
+User ||--o{ WatchedEntry : has_many
+User ||--o{ WatchlistEntry : has_many
+User }o--|| Movie : favorite_movies
+User }o--|| Movie : watched_movies
+User }o--|| Movie : watchlist_movies
+
+Movie ||--o{ ExternalRating : has_many
+Movie ||--o{ Favorite : has_many
+Movie ||--o{ WatchedEntry : has_many
+Movie ||--o{ WatchlistEntry : has_many
+Movie }o--|| Director : belongs_to
+Movie }o--o{ Genre : has_and_belongs_to_many
+
+Director ||--o{ Movie : has_many
+Genre }o--o{ Movie : has_and_belongs_to_many
+
+' Relaciones de dependencia
+RecommendationService --> RecommendationStrategy : uses
+RecommendationService --> User : depends_on
+MoviesController --> MovieRepository : uses
+Api::V1::MoviesController --> MovieRepository : uses
+
+@enduml 

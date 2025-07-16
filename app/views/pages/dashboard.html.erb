@@ -1,0 +1,50 @@
+<%# app/views/pages/dashboard.html.erb %>
+
+<div class="recommendations-section" style="margin-top: 30px;">
+  <h2>Recomendaciones Para Ti</h2>
+  <p style="font-style: italic; color: #555; margin-bottom: 20px;"><%= @recommendation_reasoning %></p>
+
+  <% if @recommended_movies.present? && @recommended_movies.any? %>
+    <div class="movie-list"> <%# Reutilizamos .movie-list %>
+      <% @recommended_movies.each do |movie| %>
+        <div class="movie-card"> <%# Reutilizamos .movie-card %>
+          <div class="movie-poster-container">
+            <% if movie.poster_url.present? %>
+              <%= image_tag movie.poster_url, alt: movie.title, class: "movie-poster-thumbnail" %>
+            <% else %>
+              <div class="movie-poster-thumbnail movie-poster-placeholder"><span><%= movie.title %></span></div>
+            <% end %>
+            <% if user_signed_in? %>
+              <div class="movie-card-actions-overlay">
+                <%= render 'movies/shared/action_icon_watched', movie: movie %>
+                <%= render 'movies/shared/action_icon_liked', movie: movie %>
+                <%= render 'movies/shared/action_icon_watchlist', movie: movie %>
+              </div>
+            <% end %>
+          </div>
+          <div class="movie-card-content">
+            <%= link_to movie_path(movie) do %>
+              <h2><%= movie.title %> <span style="font-weight: normal; color: #6c757d;">(<%= movie.release_year %>)</span></h2>
+              <% if movie.director&.name.present? %>
+                <p class="movie-card-director"><strong>Dir:</strong> <%= movie.director.name %></p>
+              <% end %>
+            <% end %>
+          </div>
+          <% if movie.weighted_score.present? %>
+            <p class="movie-card-score">
+              <strong>Puntaje:</strong> <%= "%.1f" % movie.weighted_score %>/100
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="pagy-nav-container" style="text-align: center; margin-top: 20px;">
+      <%== pagy_nav(@pagy_recommendations) if @pagy_recommendations.present? && @pagy_recommendations.pages > 1 %>
+    </div>
+  <%# Mensaje si no hay recomendaciones pero sí había datos para intentar generarlas (ya cubierto por @recommendation_reasoning) %>
+  <% elsif source_movies_for_prefs.blank? && current_user.favorite_movies.none? %>
+    <%# Este bloque es si el usuario no tiene NINGUNA película marcada como favorita para basar las recomendaciones %>
+    <p>¡Empieza por marcar algunas <%= link_to "películas como favoritas", movies_path %> para que podamos descubrir qué te gusta!</p>
+  <% end %>
+</div>

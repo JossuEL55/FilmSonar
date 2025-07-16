@@ -1,0 +1,210 @@
+@startuml Film Sonar - Diagrama Unificado con Patrones
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+skinparam classBackgroundColor #E8F4FD
+skinparam interfaceBackgroundColor #FFF2CC
+skinparam noteBackgroundColor #F0F8FF
+
+package "🎬 Entidades del Dominio" {
+  class User {
+    +email: string
+    +role: string
+    --
+    +favorite_movies()
+    +watched_movies()
+    +watchlist_movies()
+  }
+
+  class Movie {
+    +title: string
+    +description: text
+    +release_year: integer
+    +weighted_score: decimal
+    --
+    +calculate_weighted_score()
+    +update_weighted_score!()
+  }
+
+  class Director {
+    +name: string
+    +bio: text
+  }
+
+  class Genre {
+    +name: string
+  }
+
+  class ExternalRating {
+    +source_name: string
+    +score: string
+    +vote_count: integer
+    --
+    +normalized_score()
+    +effective_vote_count()
+    +update_movie_weighted_score()
+  }
+}
+
+package "📋 Entidades de Interacción" {
+  class Favorite {
+    +user_id: bigint
+    +movie_id: bigint
+  }
+
+  class WatchedEntry {
+    +user_id: bigint
+    +movie_id: bigint
+    +watched_on: date
+  }
+
+  class WatchlistEntry {
+    +user_id: bigint
+    +movie_id: bigint
+  }
+}
+
+package "🎯 STRATEGY PATTERN" {
+  interface RecommendationStrategy {
+    <<interface>>
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    +strategy_name()
+  }
+
+  class GenreStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+
+  class DirectorStrategy {
+    +recommend(user_preferences, candidate_movies)
+    +calculate_score(movie, preferences)
+    -strategy_name()
+  }
+
+  class RecommendationService {
+    -user: User
+    -strategies: Array
+    --
+    +generate_recommendations(limit: integer)
+    +get_recommendation_reasoning()
+    -extract_user_preferences()
+    -find_candidate_movies(preferences)
+  }
+}
+
+package "🗄️ REPOSITORY PATTERN" {
+  class MovieRepository {
+    +find_all()
+    +find_by_filters(filters)
+    +find_similar(movie, limit)
+    +find_top_movies(limit)
+    +find_by_id(id)
+    +search_by_title(title, limit)
+  }
+}
+
+package "🏗️ TEMPLATE METHOD PATTERN" {
+  class ApplicationController {
+    <<abstract>>
+    +authorize_manager!()
+  }
+
+  class Api::V1::BaseController {
+    +authenticate_user!()
+    +not_found(exception)
+    +unprocessable_entity(exception)
+    +render_success(data, message)
+    +render_error(message, status)
+  }
+
+  class MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+    +show()
+    -setup_filters()
+    -apply_sorting()
+  }
+
+  class Api::V1::MoviesController {
+    -movie_repository: MovieRepository
+    +index()
+    +show()
+    +similar()
+    +top()
+  }
+}
+
+' ========== RELACIONES DE PATRONES ==========
+
+' Strategy Pattern
+RecommendationStrategy <|.. GenreStrategy : "implements"
+RecommendationStrategy <|.. DirectorStrategy : "implements"
+RecommendationService --> RecommendationStrategy : "uses strategies"
+
+' Repository Pattern
+MoviesController --> MovieRepository : "uses"
+Api::V1::MoviesController --> MovieRepository : "uses"
+
+' Template Method Pattern
+ApplicationController <|-- Api::V1::BaseController : "extends"
+Api::V1::BaseController <|-- MoviesController : "extends"
+Api::V1::BaseController <|-- Api::V1::MoviesController : "extends"
+
+' Observer Pattern
+ExternalRating --> Movie : "🔗 notifies on save/destroy"
+
+' ========== RELACIONES DEL DOMINIO ==========
+User ||--o{ Favorite : "has"
+User ||--o{ WatchedEntry : "marks"
+User ||--o{ WatchlistEntry : "adds"
+User }o--|| Movie : "favorites/watched/watchlist"
+
+Movie ||--o{ ExternalRating : "has"
+Movie }o--|| Director : "directed by"
+Movie }o--o{ Genre : "belongs to"
+Movie ||--o{ Favorite : "favorited by"
+Movie ||--o{ WatchedEntry : "watched by"
+Movie ||--o{ WatchlistEntry : "in watchlist of"
+
+Director ||--o{ Movie : "directs"
+
+' ========== DEPENDENCIAS DE SERVICIOS ==========
+RecommendationService --> User : "analyzes"
+
+note as N1
+  <b>🎯 PATRÓN STRATEGY:</b>
+  • Estrategias de recomendación intercambiables
+  • Fácil agregar nuevas estrategias
+  • Separación de algoritmos
+end note
+
+note as N2
+  <b>🗄️ PATRÓN REPOSITORY:</b>
+  • Abstracción del acceso a datos
+  • Centralización de consultas
+  • Facilita testing
+end note
+
+note as N3
+  <b>🏗️ PATRÓN TEMPLATE METHOD:</b>
+  • Reutilización de código en controladores
+  • Comportamiento común definido
+  • Extensibilidad
+end note
+
+note as N4
+  <b>🔗 PATRÓN OBSERVER:</b>
+  • Actualización automática de puntuaciones
+  • Desacoplamiento entre componentes
+  • Reactividad del sistema
+end note
+
+@enduml 

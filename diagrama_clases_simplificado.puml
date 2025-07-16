@@ -1,0 +1,119 @@
+@startuml Film Sonar - Diagrama de Clases Simplificado
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+package "🎬 Entidades Principales" {
+  class User {
+    +email: string
+    +role: string
+    --
+    +favorite_movies()
+    +watched_movies()
+    +watchlist_movies()
+  }
+
+  class Movie {
+    +title: string
+    +description: text
+    +release_year: integer
+    +weighted_score: decimal
+    --
+    +calculate_weighted_score()
+  }
+
+  class Director {
+    +name: string
+    +bio: text
+  }
+
+  class Genre {
+    +name: string
+  }
+
+  class ExternalRating {
+    +source_name: string
+    +score: string
+    +vote_count: integer
+    --
+    +normalized_score()
+  }
+}
+
+package "📋 Entidades de Interacción" {
+  class Favorite {
+    +user_id: bigint
+    +movie_id: bigint
+  }
+
+  class WatchedEntry {
+    +user_id: bigint
+    +movie_id: bigint
+    +watched_on: date
+  }
+
+  class WatchlistEntry {
+    +user_id: bigint
+    +movie_id: bigint
+  }
+}
+
+package "⚙️ Servicios" {
+  class RecommendationService {
+    +generate_recommendations()
+    +get_recommendation_reasoning()
+  }
+
+  class MovieRepository {
+    +find_by_filters()
+    +find_similar()
+    +find_top_movies()
+  }
+}
+
+package "🎯 Estrategias" {
+  interface RecommendationStrategy {
+    +recommend()
+    +calculate_score()
+  }
+
+  class GenreStrategy {
+    +recommend()
+    +calculate_score()
+  }
+
+  class DirectorStrategy {
+    +recommend()
+    +calculate_score()
+  }
+}
+
+' Relaciones principales
+User ||--o{ Favorite : "tiene"
+User ||--o{ WatchedEntry : "marca"
+User ||--o{ WatchlistEntry : "agrega"
+User }o--|| Movie : "favoritas/vistas/watchlist"
+
+Movie ||--o{ ExternalRating : "tiene"
+Movie }o--|| Director : "dirigida por"
+Movie }o--o{ Genre : "pertenece a"
+Movie ||--o{ Favorite : "favorita de"
+Movie ||--o{ WatchedEntry : "vista por"
+Movie ||--o{ WatchlistEntry : "en watchlist de"
+
+Director ||--o{ Movie : "dirige"
+
+' Relaciones de servicios
+RecommendationService --> RecommendationStrategy : "usa"
+RecommendationService --> User : "analiza"
+MovieRepository --> Movie : "accede a"
+
+RecommendationStrategy <|.. GenreStrategy : "implementa"
+RecommendationStrategy <|.. DirectorStrategy : "implementa"
+
+@enduml 

@@ -1,0 +1,61 @@
+@startuml Film Sonar - Flujo de Patrones de Diseño
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 20
+skinparam componentStyle rectangle
+skinparam classBackgroundColor #E8F4FD
+skinparam interfaceBackgroundColor #FFF2CC
+
+start
+
+:Usuario solicita recomendaciones;
+
+partition "🎯 STRATEGY PATTERN" {
+  :RecommendationService;
+  :Analiza preferencias del usuario;
+  
+  fork
+    :GenreStrategy;
+    :Calcula puntuación por géneros;
+  fork again
+    :DirectorStrategy;
+    :Calcula puntuación por directores;
+  end fork
+  
+  :Combina resultados de estrategias;
+}
+
+partition "🗄️ REPOSITORY PATTERN" {
+  :MovieRepository;
+  :Busca películas candidatas;
+  :Aplica filtros;
+  :Excluye películas ya vistas;
+}
+
+partition "🔗 OBSERVER PATTERN" {
+  :ExternalRating se actualiza;
+  :Notifica a Movie;
+  :Movie actualiza weighted_score;
+}
+
+partition "🏗️ TEMPLATE METHOD" {
+  :Api::V1::BaseController;
+  :Valida autenticación;
+  :Procesa solicitud;
+  :Renderiza respuesta;
+}
+
+:Devuelve recomendaciones al usuario;
+
+stop
+
+note as N1
+  <b>Flujo de Patrones:</b>
+  1. <b>Strategy:</b> Múltiples algoritmos de recomendación
+  2. <b>Repository:</b> Acceso centralizado a datos
+  3. <b>Observer:</b> Actualización automática
+  4. <b>Template Method:</b> Procesamiento consistente
+end note
+
+@enduml 
